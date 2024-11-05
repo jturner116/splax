@@ -1,0 +1,28 @@
+defaults:
+  - _self_
+  - model: distilbert
+  # - override hydra/hydra_logging: colorlog
+  # - override hydra/job_logging: colorlog
+
+seed: 1776
+
+data:
+  format: "json"
+  train_path: "/root/data/msmarco_triplets/msmarco-triplets.jsonl.gz"
+
+batch_size: 8
+learning_rate: 3e-6
+warmup_steps: 1000
+lambda_d: 5e-4
+lambda_q: 5e-4
+T_d: 10000
+T_q: 10000
+epochs: 10
+log_every: 20
+
+checkpoint:
+  max_to_keep: 3
+  save_interval_steps: 5000
+  checkpoint_path: "checkpoints/test4"
+wandb: True
+wandb_project: "splade-distilbert"
