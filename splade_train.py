@@ -22,14 +22,13 @@ class TrainingConfig:
     data: DictConfig
     model: DictConfig
     batch_size: int
-    learning_rate: float
-    warmup_steps: int
     lambda_d: float
     lambda_q: float
     T_d: float
     T_q: float
     epochs: int
     log_every: int
+    optimizer: DictConfig
     checkpoint: DictConfig
     wandb: bool
     wandb_project: str
@@ -73,8 +72,8 @@ def train_model(
             project=cfg.wandb_project,
             config={
                 "batch_size": cfg.batch_size,
-                "learning_rate": cfg.learning_rate,
-                "warmup_steps": cfg.warmup_steps,
+                "learning_rate": cfg.optimizer.learning_rate,
+                "warmup_steps": cfg.optimizer.warmup_steps,
             },
         )
 
@@ -85,11 +84,11 @@ def train_model(
             state, loss, metrics, dropout_rng = train_step(state, batch, dropout_rng)
 
             if cfg.wandb and step % cfg.log_every == 0:
-                wandb.log({"loss": loss, "metrics": metrics}, step=step)
+                wandb.log({**metrics}, step=step)
             checkpoint_manager.save(step, args=ocp.args.StandardSave(state))
 
 
-@hydra.main(config_path="conf", config_name="distilbert_base")
+@hydra.main(config_path="conf", config_name="distilbert_base", version_base=None)
 def main(cfg: DictConfig):
     cfg = TrainingConfig(**cfg)
     tokenizer = AutoTokenizer.from_pretrained(cfg.model.name)
@@ -109,9 +108,11 @@ def main(cfg: DictConfig):
     )
 
     tx = optax.contrib.schedule_free_adamw(
-        learning_rate=cfg.learning_rate,
-        warmup_steps=cfg.warmup_steps,
+        learning_rate=cfg.optimizer.learning_rate,
+        warmup_steps=cfg.optimizer.warmup_steps,
     )
+
+    accumulator = optax.MultiSteps(tx, every_k_schedule=cfg.optimizer.every_k_schedule)
 
     train_model(
         pretrained_model=model,
@@ -120,7 +121,7 @@ def main(cfg: DictConfig):
         cfg=cfg,
         dataset=dataset,
         dummy_batch=dummy_batch,
-        tx=tx,
+        tx=accumulator,
     )
 
 

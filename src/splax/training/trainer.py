@@ -137,28 +137,3 @@ def train_step(state: TrainState, batch: Dict[str, PyTree], dropout_rng: PRNGKey
     # Update state
     state = state.apply_gradients(grads=grads)
     return state, loss, metrics, new_dropout_rng
-
-
-# def train_epoch(
-#     train_step_fn: Callable,
-#     initial_state: TrainState,
-#     initial_dropout_rng: PRNGKeyArray,
-#     dataloader,
-#     log_fn: Callable,
-#     save_checkpoint_fn: Callable,
-#     config: TrainConfig,
-# ):
-#     """Pure function for training one epoch."""
-#     state = initial_state
-#     dropout_rng = initial_dropout_rng
-
-#     for step, batch in enumerate(dataloader):
-#         state, loss, metrics, dropout_rng = train_step_fn(state, batch, dropout_rng)
-
-#         if step % config.logging_steps == 0:
-#             log_fn({"loss": loss, **metrics}, state.step)
-
-#         if step % config.save_steps == 0:
-#             save_checkpoint_fn(state, step)
-
-#     return state, dropout_rng
