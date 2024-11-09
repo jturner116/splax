@@ -11,14 +11,17 @@ data:
   train_path: "/root/data/msmarco_triplets/msmarco-triplets.jsonl.gz"
 
 batch_size: 8
-learning_rate: 3e-6
-warmup_steps: 1000
 lambda_d: 5e-4
 lambda_q: 5e-4
 T_d: 10000
 T_q: 10000
 epochs: 10
 log_every: 20
+
+optimizer:
+  learning_rate: 3e-5
+  warmup_steps: 1000
+  every_k_schedule: 4
 
 checkpoint:
   max_to_keep: 3
