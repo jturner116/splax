@@ -1,4 +1,4 @@
-from typing import Callable, Any, Dict
+from typing import Dict
 from functools import partial
 import jax
 import jax.numpy as jnp
@@ -66,8 +66,14 @@ def create_train_state(
     )
 
 
-@jax.jit
-def train_step(state: TrainState, batch: Dict[str, PyTree], dropout_rng: PRNGKeyArray):
+@partial(jax.jit, static_argnames=["top_k_d", "top_k_q"])
+def train_step(
+    state: TrainState,
+    batch: Dict[str, PyTree],
+    dropout_rng: PRNGKeyArray,
+    top_k_d: int,
+    top_k_q: int,
+):
     dropout_rng, new_dropout_rng = jax.random.split(dropout_rng)
 
     def compute_lambdas(lambda_init, T, step):
@@ -80,6 +86,8 @@ def train_step(state: TrainState, batch: Dict[str, PyTree], dropout_rng: PRNGKey
         doc_input_ids = batch["doc_input_ids"]
         doc_attention_mask = batch["doc_attention_mask"]
 
+        # Could turn this into one forward pass since not treating
+        # queries and docs differently
         query_embeddings = state.apply_fn(
             {"params": params},
             query_input_ids,
@@ -98,20 +106,21 @@ def train_step(state: TrainState, batch: Dict[str, PyTree], dropout_rng: PRNGKey
             rngs={"dropout": new_dropout_rng},
         )
 
-        doc_embeddings = doc_embeddings.reshape(
-            query_input_ids.shape[0], 2, -1
-        )  # Shape: (batch_size, 2, vocab_size)
+        doc_embeddings_flat = doc_embeddings.reshape(-1, doc_embeddings.shape[-1])
+        batch_size = query_embeddings.shape[0]
 
-        docs_transposed = jnp.transpose(doc_embeddings, (0, 2, 1))
-        queries_sparse = query_embeddings[:, None, :]
-        scores = jnp.matmul(queries_sparse, docs_transposed).squeeze(1)
-        labels = jnp.zeros(scores.shape[0], dtype=jnp.int32)
+        # Compute scores between all queries and all documents
+        # Shape: (batch_size, batch_size * 2)
+        scores = jnp.matmul(query_embeddings, doc_embeddings_flat.T)
+
+        # Create labels: for each query, its positive doc is at position i*2
+        labels = jnp.arange(batch_size) * 2
 
         lambda_t_d = compute_lambdas(state.lambda_d, state.T_d, state.step)
         lambda_t_q = compute_lambdas(state.lambda_q, state.T_q, state.step)
 
         flops = lambda_t_d * compute_flops(
-            doc_embeddings.reshape(-1, doc_embeddings.shape[-1])
+            doc_embeddings_flat
         ) + lambda_t_q * compute_L1(query_embeddings)
 
         anti_zero = 1 / (jnp.sum(query_embeddings) ** 2 + 1e-8) + 1 / (

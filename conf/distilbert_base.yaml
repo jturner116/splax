@@ -15,8 +15,9 @@ lambda_d: 5e-4
 lambda_q: 5e-4
 T_d: 10000
 T_q: 10000
+top_k_d: 256
+top_k_q: 64
 epochs: 10
-log_every: 20
 
 optimizer:
   learning_rate: 3e-5
@@ -29,3 +30,4 @@ checkpoint:
   checkpoint_path: "checkpoints/test4"
 wandb: True
 wandb_project: "splade-distilbert"
+log_every: 20

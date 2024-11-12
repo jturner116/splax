@@ -26,6 +26,8 @@ class TrainingConfig:
     lambda_q: float
     T_d: float
     T_q: float
+    top_k_d: int
+    top_k_q: int
     epochs: int
     log_every: int
     optimizer: DictConfig
@@ -81,7 +83,9 @@ def train_model(
     ## Training loop
     for epoch in range(cfg.epochs):
         for step, batch in tqdm(enumerate(dataloader), total=len(dataloader)):
-            state, loss, metrics, dropout_rng = train_step(state, batch, dropout_rng)
+            state, loss, metrics, dropout_rng = train_step(
+                state, batch, dropout_rng, cfg.top_k_d, cfg.top_k_q
+            )
 
             if cfg.wandb and step % cfg.log_every == 0:
                 wandb.log({**metrics}, step=step)
