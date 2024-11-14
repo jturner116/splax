@@ -11,19 +11,19 @@ from flax.core import freeze, unfreeze
 import flax.linen as nn
 
 
-@dataclass
-class TrainConfig:
-    """Immutable training configuration."""
+# @dataclass
+# class TrainConfig:
+#     """Immutable training configuration."""
 
-    learning_rate: float = 3e-6
-    warmup_steps: int = 1000
-    batch_size: int = 8
-    lambda_d: Float = 5e-4
-    lambda_q: Float = 5e-4
-    T_d: Int = 10000
-    T_q: Int = 10000
-    logging_steps: int = 20
-    save_steps: int = 5000
+#     learning_rate: float = 3e-6
+#     warmup_steps: int = 1000
+#     batch_size: int = 8
+#     lambda_d: Float = 5e-4
+#     lambda_q: Float = 5e-4
+#     T_d: Int = 10000
+#     T_q: Int = 10000
+#     logging_steps: int = 20
+#     save_steps: int = 5000
 
 
 class TrainState(train_state.TrainState):
@@ -66,13 +66,13 @@ def create_train_state(
     )
 
 
-@partial(jax.jit, static_argnames=["top_k_d", "top_k_q"])
+@partial(jax.jit, static_argnames=["top_k_doc", "top_k_query"])
 def train_step(
     state: TrainState,
     batch: Dict[str, PyTree],
     dropout_rng: PRNGKeyArray,
-    top_k_d: int,
-    top_k_q: int,
+    top_k_doc: int,
+    top_k_query: int,
 ):
     dropout_rng, new_dropout_rng = jax.random.split(dropout_rng)
 
@@ -92,7 +92,7 @@ def train_step(
             {"params": params},
             query_input_ids,
             query_attention_mask,
-            top_k=64,
+            top_k=top_k_query,
             train=True,
             rngs={"dropout": new_dropout_rng},
         )
@@ -101,7 +101,7 @@ def train_step(
             {"params": params},
             doc_input_ids.reshape(-1, doc_input_ids.shape[-1]),
             doc_attention_mask.reshape(-1, doc_attention_mask.shape[-1]),
-            top_k=256,
+            top_k=top_k_doc,
             train=True,
             rngs={"dropout": new_dropout_rng},
         )

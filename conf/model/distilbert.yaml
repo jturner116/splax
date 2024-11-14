@@ -1,1 +1,3 @@
 name: "distilbert-base-uncased"
+family: "distilbert"
+from_pt: False

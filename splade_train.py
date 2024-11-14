@@ -1,7 +1,9 @@
 from splax.training.trainer import train_step, create_train_state
 from splax.data.dataset import CollateFn
 from splax.models.distilbert import DistilBERTSplade
-from transformers import AutoTokenizer, FlaxDistilBertForMaskedLM
+from splax.models.bert import BERTSplade
+from splax.models.model_registry import get_splade_model
+from transformers import AutoTokenizer, FlaxDistilBertForMaskedLM, FlaxBertForMaskedLM
 import jax.numpy as jnp
 import jax
 import optax
@@ -26,8 +28,8 @@ class TrainingConfig:
     lambda_q: float
     T_d: float
     T_q: float
-    top_k_d: int
-    top_k_q: int
+    top_k_doc: int
+    top_k_query: int
     epochs: int
     log_every: int
     optimizer: DictConfig
@@ -84,7 +86,7 @@ def train_model(
     for epoch in range(cfg.epochs):
         for step, batch in tqdm(enumerate(dataloader), total=len(dataloader)):
             state, loss, metrics, dropout_rng = train_step(
-                state, batch, dropout_rng, cfg.top_k_d, cfg.top_k_q
+                state, batch, dropout_rng, cfg.top_k_doc, cfg.top_k_query
             )
 
             if cfg.wandb and step % cfg.log_every == 0:
@@ -96,8 +98,9 @@ def train_model(
 def main(cfg: DictConfig):
     cfg = TrainingConfig(**cfg)
     tokenizer = AutoTokenizer.from_pretrained(cfg.model.name)
-    model = FlaxDistilBertForMaskedLM.from_pretrained(cfg.model.name)
-    splade_model = DistilBERTSplade(model.module)
+    model, splade_model = get_splade_model(
+        cfg.model.name, cfg.model.family, cfg.model.from_pt
+    )
 
     dummy_batch = {
         "input_ids": jnp.ones((1, 128), dtype=jnp.int32),

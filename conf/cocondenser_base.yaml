@@ -1,8 +1,6 @@
 defaults:
   - _self_
-  - model: distilbert
-  # - override hydra/hydra_logging: colorlog
-  # - override hydra/job_logging: colorlog
+  - model: cocondenser
 
 seed: 1776
 
@@ -10,7 +8,7 @@ data:
   format: "json"
   train_path: "/root/data/msmarco_triplets/msmarco-triplets.jsonl.gz"
 
-batch_size: 8
+batch_size: 4
 lambda_d: 5e-4
 lambda_q: 5e-4
 T_d: 10000
@@ -21,13 +19,14 @@ epochs: 10
 
 optimizer:
   learning_rate: 3e-5
-  warmup_steps: 1000
+  warmup_steps: 10000
   every_k_schedule: 4
 
 checkpoint:
-  max_to_keep: 3
-  save_interval_steps: 5000
-  checkpoint_path: "checkpoints/test4"
+  max_to_keep: 5
+  save_interval_steps: 20000
+  checkpoint_path: "checkpoints/cocondensor"
 wandb: True
-wandb_project: "splade-distilbert"
+wandb_project: "splade-cocondensor"
 log_every: 20
+
