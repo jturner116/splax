@@ -1,8 +1,6 @@
 defaults:
   - _self_
   - model: distilbert
-  # - override hydra/hydra_logging: colorlog
-  # - override hydra/job_logging: colorlog
 
 seed: 1776
 
@@ -11,6 +9,7 @@ data:
   train_path: "/root/data/msmarco_triplets/msmarco-triplets.jsonl.gz"
 
 batch_size: 8
+num_negatives: 4
 lambda_d: 5e-4
 lambda_q: 5e-4
 T_d: 10000

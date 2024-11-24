@@ -1,9 +1,7 @@
 from splax.training.trainer import train_step, create_train_state
-from splax.data.dataset import CollateFn
-from splax.models.distilbert import DistilBERTSplade
-from splax.models.bert import BERTSplade
+from splax.data.dataset import CollateFn, MultipleNegativesCollateFn
 from splax.models.model_registry import get_splade_model
-from transformers import AutoTokenizer, FlaxDistilBertForMaskedLM, FlaxBertForMaskedLM
+from transformers import AutoTokenizer
 import jax.numpy as jnp
 import jax
 import optax
@@ -24,6 +22,7 @@ class TrainingConfig:
     data: DictConfig
     model: DictConfig
     batch_size: int
+    num_negatives: int
     lambda_d: float
     lambda_q: float
     T_d: float
@@ -58,7 +57,9 @@ def train_model(
 
     dataloader = DataLoader(
         dataset,
-        collate_fn=CollateFn(tokenizer),
+        collate_fn=MultipleNegativesCollateFn(
+            tokenizer, num_negatives=cfg.num_negatives
+        ),
         batch_size=cfg.batch_size,
     )
 
