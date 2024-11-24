@@ -8,14 +8,15 @@ data:
   format: "json"
   train_path: "/root/data/msmarco_triplets/msmarco-triplets.jsonl.gz"
 
-batch_size: 4
+batch_size: 3
+num_negatives: 4
 lambda_d: 5e-4
 lambda_q: 5e-4
-T_d: 10000
-T_q: 10000
+T_d: 20000
+T_q: 20000
 top_k_doc: 256
 top_k_query: 64
-epochs: 10
+epochs: 5
 
 optimizer:
   learning_rate: 3e-5
@@ -23,8 +24,8 @@ optimizer:
   every_k_schedule: 4
 
 checkpoint:
-  max_to_keep: 5
-  save_interval_steps: 20000
+  max_to_keep: 15
+  save_interval_steps: 40000
   checkpoint_path: "checkpoints/cocondensor"
 wandb: True
 wandb_project: "splade-cocondensor"
