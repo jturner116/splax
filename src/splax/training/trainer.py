@@ -4,26 +4,10 @@ import jax
 import jax.numpy as jnp
 import optax
 from flax.training import train_state
-from dataclasses import dataclass
 from jaxtyping import Float, Int, PRNGKeyArray, PyTree
 from .losses import compute_flops, compute_L1
 from flax.core import freeze, unfreeze
 import flax.linen as nn
-
-
-# @dataclass
-# class TrainConfig:
-#     """Immutable training configuration."""
-
-#     learning_rate: float = 3e-6
-#     warmup_steps: int = 1000
-#     batch_size: int = 8
-#     lambda_d: Float = 5e-4
-#     lambda_q: Float = 5e-4
-#     T_d: Int = 10000
-#     T_q: Int = 10000
-#     logging_steps: int = 20
-#     save_steps: int = 5000
 
 
 class TrainState(train_state.TrainState):
