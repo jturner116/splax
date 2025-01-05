@@ -1,6 +1,11 @@
 from .distilbert import DistilBERTSplade
 from .bert import BERTSplade
-from transformers import FlaxBertForMaskedLM, FlaxDistilBertForMaskedLM
+from transformers import FlaxDistilBertForMaskedLM
+
+from transformers import FlaxBertForMaskedLM
+
+# from ..base_models.bert import FlaxBertForMaskedLM
+from ..base_models.flash_bert import FlashBertForMaskedLM
 from typing import Any, Tuple
 
 MODEL_REGISTRY = {
@@ -9,7 +14,7 @@ MODEL_REGISTRY = {
         "splade_class": DistilBERTSplade,
     },
     "bert": {
-        "model_class": FlaxBertForMaskedLM,
+        "model_class": FlashBertForMaskedLM,
         "splade_class": BERTSplade,
     },
 }

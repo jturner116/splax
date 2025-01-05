@@ -1,6 +1,6 @@
 from splax.training.trainer import train_step, create_train_state
 from splax.data.dataset import CollateFn, MultipleNegativesCollateFn
-from splax.models.model_registry import get_splade_model
+from splax.models.splade_models.model_registry import get_splade_model
 from transformers import AutoTokenizer
 import jax.numpy as jnp
 import jax
