@@ -1,5 +1,5 @@
 from splax.training.trainer import train_step, create_train_state
-from splax.data.dataset import CollateFn, MultipleNegativesCollateFn
+from splax.data.dataset import MultipleNegativesCollateFn
 from splax.models.splade_models.model_registry import get_splade_model
 from transformers import AutoTokenizer
 import jax.numpy as jnp
@@ -92,7 +92,8 @@ def train_model(
 
             if cfg.wandb and step % cfg.log_every == 0:
                 wandb.log({**metrics}, step=step)
-            checkpoint_manager.save(step, args=ocp.args.StandardSave(state))
+            if cfg.checkpoint.save_interval_steps > 0:
+                checkpoint_manager.save(step, args=ocp.args.StandardSave(state))
 
 
 @hydra.main(config_path="conf", config_name="distilbert_base", version_base=None)
